@@ -1,0 +1,6 @@
+{
+    "maxConcurrentConnections": 10,
+    "minimumTimeBetweenRequests": 50,
+    "productsPerRequest": 50,
+    "defaultSearchQuery": "frozen 2"
+}

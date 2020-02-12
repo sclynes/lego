@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/sclynes/lego#readme",
   "dependencies": {
+    "bottleneck": "^2.19.5",
+    "progress": "^2.0.3",
     "request": "^2.88.2"
   }
 }

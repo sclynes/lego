@@ -1,7 +1,42 @@
 
 const request = require('request');
+const ProgressBar = require('progress');
+const Bottleneck = require('bottleneck');
+const config = require('./config');
 
-const query = query => {
+const searchQuery = async query => {
+    var bar = new ProgressBar(`searching: ${query} [:bar] :rate/pps :percent :etas`, {complete: '=', incomplete: ' ', width: 30, total: 1});
+    const limiter = new Bottleneck({minTime: config.minimumTimeBetweenRequests, maxConcurrent: config.maxConcurrentConnections});
+    const limitedSearchQuery = limiter.wrap(_searchQuery);
+
+    let currentPage = 1;
+    let results = [];
+
+    let response = await _searchQuery(query, currentPage++);
+    const numberOfPages = Math.ceil(response.data.search.productResult.total / config.productsPerRequest);
+
+    bar.total = numberOfPages;
+    bar.tick(1);
+    results.push(...response.data.search.productResult.results);
+
+
+    if(currentPage > numberOfPages) return results;
+    
+    let allRequests = [];
+    for (let i = currentPage; i <= numberOfPages; i++) {
+        allRequests.push(limitedSearchQuery(query, i).then(res => {
+            bar.tick(1);    //Each time a request is fulfilled then update progress bar
+            return res;
+        }));
+    }
+    const responses = await Promise.all(allRequests); //Wait for all requests to return
+    results.push(...responses.map(r => {
+        return r.data.search.productResult.results; //extract all products from request and put into array
+    }));
+    return results.flat(); //flatten so that the array contains just products rather than products per request sub arrays
+}
+
+const _searchQuery = (query, page) => { //private function
     const options = {
         method: "POST",
         url: "https://www.lego.com/api/graphql/SearchQuery",
@@ -13,9 +48,9 @@ const query = query => {
         body: JSON.stringify({
             "operationName": "SearchQuery",
             "variables": {
-                "page": 1,
+                "page": page,
                 "isPaginated": true,
-                "perPage": 18,
+                "perPage": config.productsPerRequest, //This can be as large as 500 though you risk a client timeout if too large
                 "sort": {
                     "key": "RELEVANCE",
                     "direction": "ASC"
@@ -33,25 +68,38 @@ const query = query => {
     return new Promise( (resolve, reject) => 
         request(options, (err, res, body) => {
             if (err) reject(err);
-            else resolve(body);
+            else {
+                const json = JSON.parse(body);
+                resolve(json);
+            }
         })
     )
 }
 
-parse = data => {
-    const products = data.data.search.productResult.results;
-    return products.map(product => {
-        return {
-            name: product.name,
-            itemNumber: product.productCode,
-            price: product.variant.price.formattedAmount,
-            rating: product.variant.attributes.rating,
-            availability: product.variant.attributes.availabilityText
+const searchParse = products => {
+   return {
+        result: products.map(product => {
+        //Each variant in the variants array would normally have to be accounted for, in search for "star wars" some products can have multiple variants
+        const variant = product.variant? product.variant: product.variants[0]; 
+        try {
+            return {
+                name: product.name,
+                itemNumber: product.productCode,
+                price: variant.price.formattedAmount,
+                rating: variant.attributes.rating,
+                availability: variant.attributes.availabilityText
+            }
+        } catch(err) {
+            return {
+                product: product.productCode,
+                err: err
+            }
         }
     })
-}
+}}
+
 
 module.exports = {
-    query,
-    parse
+    searchQuery,
+    searchParse
 }
