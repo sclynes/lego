@@ -1,0 +1,22 @@
+{
+  "name": "lego",
+  "version": "1.0.0",
+  "description": "Simple script to scrape lego site",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sclynes/lego.git"
+  },
+  "author": "Simon Clynes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sclynes/lego/issues"
+  },
+  "homepage": "https://github.com/sclynes/lego#readme",
+  "dependencies": {
+    "request": "^2.88.2"
+  }
+}
