@@ -7,12 +7,12 @@ const config = require('./config');
 const searchQuery = async query => {
     var bar = new ProgressBar(`searching: ${query} [:bar] :rate/pps :percent :etas`, {complete: '=', incomplete: ' ', width: 30, total: 1});
     const limiter = new Bottleneck({minTime: config.minimumTimeBetweenRequests, maxConcurrent: config.maxConcurrentConnections});
-    const limitedSearchQuery = limiter.wrap(_searchQuery);
+    const limitedSearchQuery = limiter.wrap(doSearchRequest);
 
     let currentPage = 1;
     let results = [];
 
-    let response = await _searchQuery(query, currentPage++);
+    let response = await doSearchRequest(query, currentPage++);
     const numberOfPages = Math.ceil(response.data.search.productResult.total / config.productsPerRequest);
 
     bar.total = numberOfPages;
@@ -30,13 +30,11 @@ const searchQuery = async query => {
         }));
     }
     const responses = await Promise.all(allRequests); //Wait for all requests to return
-    results.push(...responses.map(r => {
-        return r.data.search.productResult.results; //extract all products from request and put into array
-    }));
+    results.push(...responses.map(r => r.data.search.productResult.results));
     return results.flat(); //flatten so that the array contains just products rather than products per request sub arrays
 }
 
-const _searchQuery = (query, page) => { //private function
+const doSearchRequest = (query, page) => { //private function
     const options = {
         method: "POST",
         url: "https://www.lego.com/api/graphql/SearchQuery",
