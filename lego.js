@@ -40,7 +40,15 @@ const query = query => {
 
 parse = data => {
     const products = data.data.search.productResult.results;
-    console.log(products);
+    return products.map(product => {
+        return {
+            name: product.name,
+            itemNumber: product.productCode,
+            price: product.variant.price.formattedAmount,
+            rating: product.variant.attributes.rating,
+            availability: product.variant.attributes.availabilityText
+        }
+    })
 }
 
 module.exports = {
