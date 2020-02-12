@@ -8,7 +8,7 @@ Clone this repo <br/>
 **git clone https://github.com/sclynes/lego.git**
 
 Enter the cloned directory<br/>
-**cd lego-master**
+**cd lego**
 
 Install all dependancies<br/>
 **npm install**
@@ -24,3 +24,4 @@ for custom search<br/>
 e.g.<br/>
 **node index.js lego** <br/>
 **node index.js star wars** <br/>
+
