@@ -25,3 +25,7 @@ e.g.<br/>
 **node index.js lego** <br/>
 **node index.js star wars** <br/>
 
+<br/>
+search results are found in the searches directory on the script base path<br/>
+filenames are of the format [query string]_[timestamp].json
+
