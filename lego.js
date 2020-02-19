@@ -24,7 +24,8 @@ const searchQuery = async query => {
     
     let allRequests = [];
     for (let i = currentPage; i <= numberOfPages; i++) {
-        allRequests.push(limitedSearchQuery(query, i).then(res => {
+        allRequests.push(limitedSearchQuery(query, i)
+        .then(res => {
             bar.tick(1);    //Each time a request is fulfilled then update progress bar
             return res;
         }));
@@ -65,7 +66,7 @@ const doSearchRequest = (query, page) => { //private function
     }
     return new Promise( (resolve, reject) => 
         request(options, (err, res, body) => {
-            if (err) reject(err);
+            if (err) resolve(err);
             else {
                 const json = JSON.parse(body);
                 resolve(json);
