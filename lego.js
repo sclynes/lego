@@ -32,7 +32,7 @@ const searchQuery = async query => {
     }
     const responses = await Promise.all(allRequests); //Wait for all requests to return
     results.push(...responses.map(r => r.data.search.productResult.results));
-    return results.flat(); //flatten so that the array contains just products rather than products per request sub arrays
+    return flatten(results); //flatten so that the array contains just products rather than products per request sub arrays
 }
 
 const doSearchRequest = (query, page) => { //private function
@@ -66,7 +66,7 @@ const doSearchRequest = (query, page) => { //private function
     }
     return new Promise( (resolve, reject) => 
         request(options, (err, res, body) => {
-            if (err) resolve(err);
+            if (err) reject(err);
             else {
                 const json = JSON.parse(body);
                 resolve(json);
@@ -97,6 +97,11 @@ const searchParse = products => {
     })
 }}
 
+function flatten(arr) {
+    return arr.reduce(function (flat, toFlatten) {
+      return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
+  }
 
 module.exports = {
     searchQuery,
